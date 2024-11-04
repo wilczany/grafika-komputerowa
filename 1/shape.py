@@ -68,7 +68,10 @@ class Shape:
 
     def get_resize_handles(self):
         handles = []
-        if self.shape_type == "rectangle":
+        if self.shape_type == "line":
+            if len(self.points) >= 2:
+                handles = [self.points[0], self.points[1]]
+        elif self.shape_type == "rectangle":
             rect = self.get_rect()
             handles = [
                 QPoint(rect.left(), rect.top()),

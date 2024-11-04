@@ -45,20 +45,25 @@ class DrawingArea(QWidget):
                 self.selected_shape = None
 
     def mouseMoveEvent(self, event):
+        # rysowanie
         if self.drawing and self.current_shape:
             if len(self.current_shape.points) == 1:
                 self.current_shape.points.append(event.position().toPoint())
             else:
                 self.current_shape.points[-1] = event.position().toPoint()
             self.update()
+        # przesuwanie 
         elif self.selected_shape and self.selected_shape.moving:
             delta = event.position().toPoint() - self.last_mouse_pos
             for i in range(len(self.selected_shape.points)):
                 self.selected_shape.points[i] += delta
             self.last_mouse_pos = event.position().toPoint()
             self.update()
+        # zmiana rozmiaru
         elif self.selected_shape and self.selected_shape.resizing:
-            if self.selected_shape.shape_type == "rectangle":
+            if self.selected_shape.shape_type == "line":
+                self.selected_shape.points[self.selected_shape.resize_handle] = event.position().toPoint()
+            elif self.selected_shape.shape_type == "rectangle":
                 handle_index = self.selected_shape.resize_handle
                 if handle_index is not None:
                     points = self.selected_shape.points
