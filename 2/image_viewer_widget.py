@@ -12,20 +12,18 @@ class ImageViewerWidget(QScrollArea):
         self.setWidgetResizable(True)
         
         self.image_data = None
-        self.zoom_factor = 1.0
+        self.zoom_factor = 4.0  # Set initial zoom factor to 4.0
         self.min_zoom = 0.1
         self.max_zoom = 10.0
         
         # For pixel value display
         self.show_pixel_values = False
-        self.last_mouse_pos = QPoint()
-        
-        # Enable mouse tracking
-        self.image_label.setMouseTracking(True)
-        self.image_label.mouseMoveEvent = self.on_mouse_move
+        self.last_mouse_pos = QPoint()        
+
         
     def set_image(self, image_data):
         self.image_data = image_data
+        self.zoom_factor = 4.0  # Reset zoom factor when a new image is set
         self.update_view()
         
     def has_image(self):
@@ -38,29 +36,24 @@ class ImageViewerWidget(QScrollArea):
         if self.image_data is None:
             return
             
-        height, width = self.image_data.shape[:2]
-        bytes_per_line = 3 * width
-        
-        q_image = QImage(
-            self.image_data.data,
-            width,
-            height,
-            bytes_per_line,
-            QImage.Format_RGB888
-        )
-        pixmap = QPixmap.fromImage(q_image)
+        pixmap = QPixmap.fromImage(self.image_data)
+        # scaled_pixmap = pixmap.scaled(
+        #     pixmap.width() * self.zoom_factor,
+        #     pixmap.height() * self.zoom_factor,
+        #     Qt.KeepAspectRatio,
+        #     Qt.SmoothTransformation
+        # )
         scaled_pixmap = pixmap.scaled(
-            pixmap.width() * self.zoom_factor,
-            pixmap.height() * self.zoom_factor,
+            self.image_label.size(),
             Qt.KeepAspectRatio,
             Qt.SmoothTransformation
         )
-        
-        if self.zoom_factor >= 4.0:  # Show pixel values when zoomed in
-            self.show_pixel_values = True
-            scaled_pixmap = self.draw_pixel_values(scaled_pixmap)
-        else:
-            self.show_pixel_values = False
+
+        # if self.zoom_factor >= 4.0:  # Show pixel values when zoomed in
+        #     self.show_pixel_values = True
+        #     scaled_pixmap = self.draw_pixel_values(scaled_pixmap)
+        # else:
+        #     self.show_pixel_values = False
             
         self.image_label.setPixmap(scaled_pixmap)
         
@@ -109,7 +102,3 @@ class ImageViewerWidget(QScrollArea):
             self.zoom_factor /= 1.2
             self.update_view()
             
-    def on_mouse_move(self, event):
-        self.last_mouse_pos = event.pos()
-        if self.show_pixel_values:
-            self.update_view()

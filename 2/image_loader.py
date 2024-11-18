@@ -1,69 +1,104 @@
-import struct
 from PIL import Image
 import numpy as np
+import sys
+from PySide6.QtGui import QImage, QColor
 
 class PPMLoader:
-    def load(self, file_path):
-        with open(file_path, 'rb') as f:
-            # Read header
-            magic = f.readline().decode().strip()
-            if magic not in ['P3', 'P6']:
-                raise ValueError("Unsupported PPM format")
-                
-            # Skip comments
-            line = f.readline()
-            while line.startswith(b'#'):
-                line = f.readline()
-                
-            # Read dimensions
-            width, height = map(int, line.decode().strip().split())
-            max_val = int(f.readline().strip())
-            
+    def __init__(self, file_path):
+        self.file = open(file_path, 'rb')
 
-            if magic == 'P3':
+        # read magic number
+        ppm_type = self.file.readline().strip()
+        if ppm_type not in [b'P3', b'P6']:
+            raise ValueError("Unsupported PPM format")
+        self.ppm_type = ppm_type
+        
+        params = []
+        while len(params) < 3:
+            line = next(self.next_line_gen())
+            params.extend(line.split())
+        if len(params) > 3:
+            raise ValueError("Error reading ppm header")
 
-                return self._load_p3(f, width, height, max_val)
+        self.width = int(params[0])
+        self.height = int(params[1])
+        self.max_val = int(params[2])
+
+    def next_line_gen(self):
+        while True:
+            line = self.file.readline()
+            if not line:
+                break
+            else:    
+                line = line.split(b'#')[0].strip()
+                if line:
+                    yield line
+    
+    def get_image_data(self):
+        x= 0
+        y = 0
+        tmp = []
+        line_gen = self.next_line_gen()
+        image = QImage(self.width, self.height, QImage.Format_RGB888)
+        # for w in range(1,5):
+        #     test_image = QImage(w,10, QImage.Format_RGB888)
+        #     print(f"expected : {w}*3={w*3};given {len(test_image.scanLine(y)[:])}")
+        #  :'))
+        if self.ppm_type == b'P3':
+            # uses generator for lazy loading file
+            for line in line_gen:
+                values = line.split()
+                tmp.extend(values)
+                while len(tmp) >= 3:
+                    r = int(tmp[0]) * 255 // self.max_val
+                    g = int(tmp[1]) * 255 // self.max_val
+                    b = int(tmp[2]) * 255 // self.max_val
+
+                    image.setPixelColor(x, y, QColor(r, g, b))
+                    tmp = tmp[3:]
+                    x += 1
+                    if x >= self.width:
+                        x = 0
+                        y += 1
+
+        elif self.ppm_type == b'P6': 
+            data = self.file.read()
+            idx = 0
+            if self.width < 4:
+                for y in range(self.height):
+                    for x in range(self.width):
+                        r = data[idx]
+                        g = data[idx + 1]
+                        b = data[idx + 2]
+                        image.setPixelColor(x, y, QColor(r, g, b))
+                        idx += 3
+    
+            elif self.max_val == 255:
+                # Direct copy if no scaling needed
+                for y in range(self.height):
+                    start = y * self.width * 3
+                    end = start + self.width * 3
+                    
+                    image.scanLine(y)[:] = data[start:end]
             else:
-                return self._load_p6(f, width, height, max_val)
+                # Scale values 
+                scaled_data = bytearray(self.width * self.height * 3)
+                for i in range(0, len(data), 3):
+                    scaled_data[i] = data[i] * 255 // self.max_val
+                    scaled_data[i + 1] = data[i + 1] * 255 // self.max_val
+                    scaled_data[i + 2] = data[i + 2] * 255 // self.max_val
                 
-    def _load_p3(self, f, width, height, max_val):
-        data = np.zeros((height, width, 3), dtype=np.uint8)
-        values = []
+                for y in range(self.height):
+                    start = y * self.width * 3
+                    end = start + self.width * 3
+                    image.scanLine(y)[:] = scaled_data[start:end]
         
-        # Read all numbers efficiently
-        for line in f:
-            values.extend(map(int, line.split()))
-            
-        idx = 0
-        for y in range(height):
-            for x in range(width):
-                for c in range(3):
-                    data[y, x, c] = int(values[idx] * 255 / max_val)
-                    idx += 1
-                     
-        return data
-        
-    def _load_p6(self, f, width, height, max_val):
-        data = np.zeros((height, width, 3), dtype=np.uint8)
-        
-        # Read binary data in blocks
-        block_size = width * 3
-        for y in range(height):
-            row_data = f.read(block_size)
-            if max_val == 255:
-                data[y] = np.frombuffer(row_data, dtype=np.uint8).reshape(width, 3)
-            else:
-                row_values = np.frombuffer(row_data, dtype=np.uint8)
-                data[y] = (row_values * 255 / max_val).astype(np.uint8).reshape(width, 3)
-                
-        return data
-
+        return image
+    
 class JPEGLoader:
     def load(self, file_path):
-        with Image.open(file_path) as img:
-            return np.array(img)
+        return QImage(file_path)
+        
             
     def save(self, image_data, file_path, quality=85):
         Image.fromarray(image_data).save(file_path, quality=quality)
-
-# image_processor.py
