@@ -1,6 +1,5 @@
 from PIL import Image
-import numpy as np
-import sys
+
 from PySide6.QtGui import QImage, QColor
 
 class PPMLoader:
@@ -39,7 +38,7 @@ class PPMLoader:
         y = 0
         tmp = []
         line_gen = self.next_line_gen()
-        image = QImage(self.width, self.height, QImage.Format_RGB888)
+        image = QImage(self.width, self.height, QImage.Format.Format_RGB888)
         # for w in range(1,5):
         #     test_image = QImage(w,10, QImage.Format_RGB888)
         #     print(f"expected : {w}*3={w*3};given {len(test_image.scanLine(y)[:])}")
