@@ -2,7 +2,7 @@ from PySide6.QtGui import QColor
 
 from PySide6.QtWidgets import QWidget
 
-import layout
+import Layout
 
 from ColorPreview import ColorPreview
 
@@ -12,7 +12,7 @@ class RGBtoCMYK(QWidget):
 	def __init__(self):
 		super().__init__()
 		self.cmyk_color_display = ColorPreview()
-		layout.do_RGB_layout(self)
+		Layout.do_RGB_layout(self)
 		self.color = QColor(0,0,0)
 
 	def updateColor(self):
