@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 from RGBtoCMK import RGBtoCMYK
 from CMYKtoRGB import CMYKtoRGB
+from Cube import CubeWidget
 
 def do_main_layout(window: QMainWindow):
 
@@ -20,7 +21,7 @@ def do_main_layout(window: QMainWindow):
     tab_widget = QTabWidget()
     tab_widget.addTab(RGBtoCMYK(), "RGB to CMYK")
     tab_widget.addTab(CMYKtoRGB(), "CMYK to RGB")
-
+    tab_widget.addTab(CubeWidget(), "RGB Cube")
     window.setCentralWidget(tab_widget)
 
 def do_RGB_layout(window: RGBtoCMYK):
