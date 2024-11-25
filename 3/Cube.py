@@ -31,7 +31,7 @@ class CubeGLWidget(QOpenGLWidget):
         self.slice_position = 0
         self.showSlice = False
         
-        # self.lastPos = None
+        self.lastPos = None
 
     def initializeGL(self):
         glEnable(GL_DEPTH_TEST)
@@ -66,7 +66,7 @@ class CubeGLWidget(QOpenGLWidget):
 
     def drawCube(self):
         glBegin(GL_QUADS)
-        # Front face (red)
+        
         vertices = [
             # Przód
             [-1, -1, 1],  [1, -1, 1],  [1, 1, 1],  [-1, 1, 1],
@@ -84,7 +84,7 @@ class CubeGLWidget(QOpenGLWidget):
 
         for i in range(0, len(vertices), 4):
             for vertex in vertices[i:i+4]:
-                # Normalizacja współrzędnych do zakresu [0,1]
+                
                 color = [(x + 1) / 2 for x in vertex]
                 glColor3f(color[0], color[1], color[2])
                 glVertex3f(vertex[0], vertex[1], vertex[2])
@@ -113,7 +113,7 @@ class CubeGLWidget(QOpenGLWidget):
             # Łączenia przód-tył
             [-1, -1, 1], [-1, -1, -1], [1, -1, 1], [1, -1, -1], [1, 1, 1], [1, 1, -1], [-1, 1, 1], [-1, 1, -1]]
         for edge in edges:
-            glColor3f(1.0, 1.0, 1.0)  # White color for edges
+            glColor3f(1.0, 1.0, 1.0)  # White 
             glVertex3f(edge[0], edge[1], edge[2])
         glEnd()
 
