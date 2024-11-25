@@ -32,12 +32,11 @@ class RGBtoCMYK(QWidget):
 			c = (1 - r_ - k) / (1 - k)
 			m = (1 - g_ - k) / (1 - k)
 			y = (1 - b_ - k) / (1 - k)
-   
+
 		self.color = QColor.fromCmykF(c, m, y, k)
 		
 		self.cmyk_color_display.setColor(self.color)
   
-		self.cmyk_values = [c, m, y, k]
-		self.cmyk_values_text.setText(f"C: {c:.2%} M: {m:.2%} Y: {y:.2%} K: {k:.2%}")
+		self.color_values_text.setText(f"C: {c:.2%} M: {m:.2%} Y: {y:.2%} K: {k:.2%}")
 		
   

@@ -26,17 +26,6 @@ class CMYKtoRGB(QWidget):
 	
 		self.rgb_color_display.setColor(self.color)
 	
-		self.rgb_values = [r, g, b]
-		self.rgb_values_text.setText(f"R: {round(r,2)} G: {round(g,2)} B: {round(b,2)}")
+		self.color_values_text.setText(f"R: {round(r,2)} G: {round(g,2)} B: {round(b,2)}")
 	
-		
-		self.rgb_values_text.adjustSize()
 	
-		self.rgb_values_text.move(
-			self.rgb_values_text.parent().width() // 2 - self.rgb_values_text.width() // 2,
-			self.rgb_values_text.parent().height() // 2 - self.rgb_values_text.height() // 2,
-		)
-	
-		self.rgb_values_text.show()
-	
-		self.rgb_color_display

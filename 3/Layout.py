@@ -24,70 +24,37 @@ def do_main_layout(window: QMainWindow):
     tab_widget.addTab(CubeWidget(), "RGB Cube")
     window.setCentralWidget(tab_widget)
 
+def do_color_layout(window, colors, range, color_label_text, color_display):
+    window.main_layout = QVBoxLayout()
+
+    pallette_layout = get_pallette(window, colors, range)
+
+    outer_layout = QVBoxLayout()
+    inner_layout = QHBoxLayout()
+    color_label = QLabel(color_label_text)
+    window.color_values_text = QLabel()
+
+    inner_layout.addWidget(color_label)
+    inner_layout.addWidget(window.color_values_text)
+    outer_layout.addLayout(inner_layout)
+    outer_layout.addWidget(color_display)
+
+    window.main_layout.addLayout(pallette_layout)
+    window.main_layout.addLayout(outer_layout)
+
+    window.setLayout(window.main_layout)
+
 def do_RGB_layout(window: RGBtoCMYK):
-    main_layout = QVBoxLayout()
-    pallete_layout = QHBoxLayout()
-
-    colors = ["red", "green", "blue"]
-
-    for c in colors:
-        setattr(
-            window,c,
-            dict(
-                [
-                    ("slider", QSlider(Qt.Horizontal)),
-                    ("spin", QSpinBox()),
-                    ("label", QLabel(c.capitalize() + ":")),
-                ]
-            ),
-        )
-
-        getattr(window, c)["slider"].setRange(0, 255)
-        getattr(window, c)["spin"].setRange(0, 255)
-
-        # Connect slider and spinbox to each other
-        getattr(window, c)["slider"].valueChanged.connect(
-            getattr(window, c)["spin"].setValue
-        )
-        getattr(window, c)["spin"].valueChanged.connect(
-            getattr(window, c)["slider"].setValue
-        )
-
-        # Update color when slider is moved
-        getattr(window, c)["slider"].valueChanged.connect(window.updateColor)
-
-        pallete_layout.addWidget(getattr(window, c)["label"])
-        pallete_layout.addWidget(getattr(window, c)["slider"])
-        pallete_layout.addWidget(getattr(window, c)["spin"])
-    # end of loop
-
-    # CMYK Color Labels and display
-
-    window.cmyk_values = []
-
-    cmyk_outer_layout = QVBoxLayout()
-    cmyk_layout = QHBoxLayout()
-    cmyk_label = QLabel("CMYK:")
-    window.cmyk_values_text = QLabel()
-
-    cmyk_layout.addWidget(cmyk_label)
-    cmyk_layout.addWidget(window.cmyk_values_text)
-    cmyk_outer_layout.addLayout(cmyk_layout)
-    cmyk_outer_layout.addWidget(window.cmyk_color_display)
-
-    main_layout.addLayout(pallete_layout)
-    main_layout.addLayout(cmyk_outer_layout)
-
-    window.setLayout(main_layout)
+    do_color_layout(window, ["red", "green", "blue"], 255, "CMYK:", window.cmyk_color_display)
 
 def do_CMK_layout(window: CMYKtoRGB):
-
-    main_layout = QVBoxLayout()
-    pallette_layout = QHBoxLayout()
+    do_color_layout(window, ["cyan", "magenta", "yellow", "black"], 100, "RGB:", window.rgb_color_display)
     
-    colors = ["cyan", "magenta", "yellow", "black"]
 
-    for c in colors:
+def get_pallette(window, colors_array, range):
+        
+    pallette_layout = QHBoxLayout()
+    for c in colors_array:
         setattr(
             window, c,
             dict(
@@ -99,8 +66,8 @@ def do_CMK_layout(window: CMYKtoRGB):
             ),
         )
 
-        getattr(window, c)["slider"].setRange(0, 100)
-        getattr(window, c)["spin"].setRange(0, 100)
+        getattr(window, c)["slider"].setRange(0, range)
+        getattr(window, c)["spin"].setRange(0, range)
 
         # Connect slider and spinbox to each other
         getattr(window, c)["slider"].valueChanged.connect(
@@ -116,26 +83,5 @@ def do_CMK_layout(window: CMYKtoRGB):
         pallette_layout.addWidget(getattr(window, c)["label"])
         pallette_layout.addWidget(getattr(window, c)["slider"])
         pallette_layout.addWidget(getattr(window, c)["spin"])
-    
-    # end of loop
-    
-    # RGB Color Labels and display
-    
-    window.rgb_values = []
-    
-    rgb_outer_layout = QVBoxLayout()
-    rgb_layout = QHBoxLayout()
-    rgb_label = QLabel("RGB:")
-    window.rgb_values_text = QLabel()
-    
-    rgb_layout.addWidget(rgb_label)
-    rgb_layout.addWidget(window.rgb_values_text)
-    rgb_outer_layout.addLayout(rgb_layout)
-    rgb_outer_layout.addWidget(window.rgb_color_display)
-    
-    main_layout.addLayout(pallette_layout)
-    main_layout.addLayout(rgb_outer_layout)
-    
-    window.setLayout(main_layout)
-    
-    
+
+    return pallette_layout

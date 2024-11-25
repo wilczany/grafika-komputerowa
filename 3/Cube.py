@@ -1,16 +1,9 @@
-#     Rysowanie kostki RGB
-
-# Kostka RGB powinna zostać narysowana w trójwymiarze,
-# Użytkownik powinien mieć możliwość obracania kostką,
-# Pokrycie kostki kolorami powinno odbywać się przy użyciu odpowiednich wzorów
-# Użytkownik powinien mieć możliwość obserwacji przekroju kostki: po wyborze odpowiedniego miejsca kostki powinien pojawić się jego przekrój (obok lub poprzez przecięcie kostki).
-
 from PySide6.QtOpenGLWidgets import QOpenGLWidget
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QWidget, QHBoxLayout
+from PySide6.QtWidgets import QWidget
 from OpenGL.GL import *
 from OpenGL.GLU import *
-from PySide6.QtWidgets import QPushButton, QVBoxLayout, QCheckBox
+from PySide6.QtWidgets import QVBoxLayout, QCheckBox
 
 class CubeWidget(QWidget):
     def __init__(self):
@@ -29,64 +22,31 @@ class CubeWidget(QWidget):
         self.glWidget.update()
         
         
-    def resetRotation(sel):
-        self.glWidget.setXRotation(0)
-        self.glWidget.setYRotation(0)
-        self.glWidget.setZRotation(0)
-        
 class CubeGLWidget(QOpenGLWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.xRot = 0
         self.yRot = 0
         self.zRot = 0
-        self.slice_position = 0.5
+        self.slice_position = 0
         self.showSlice = False
         
         # self.lastPos = None
 
     def initializeGL(self):
-        glClearColor(0.0, 0.0, 0.0, 1.0)
         glEnable(GL_DEPTH_TEST)
-        glEnable(GL_BLEND)
-        # glEnable(GL_COLOR_MATERIAL)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
-        # glShadeModel(GL_FLAT)    def drawCube(self):
-        glBegin(GL_QUADS)
-        # Front face (red)
-        vertices = [
-            # Przód
-            [-1, -1, 1],  [1, -1, 1],  [1, 1, 1],  [-1, 1, 1],
-            # Tył
-            [-1, -1, -1], [-1, 1, -1], [1, 1, -1], [1, -1, -1],
-            # Góra
-            [-1, 1, -1],  [-1, 1, 1],  [1, 1, 1],  [1, 1, -1],
-            # Dół
-            [-1, -1, -1], [1, -1, -1], [1, -1, 1], [-1, -1, 1],
-            # Prawo
-            [1, -1, -1],  [1, 1, -1],  [1, 1, 1],  [1, -1, 1],
-            # Lewo
-            [-1, -1, -1], [-1, -1, 1], [-1, 1, 1], [-1, 1, -1]
-        ]
 
-        for i in range(0, len(vertices), 4):
-            for j, vertex in enumerate(vertices[i:i+4]):
-                # Normalizacja współrzędnych do zakresu [0,1]
-                color = [(x + 1) / 2 for x in vertex]
-                # Apply gradient effect
-                gradient = j / 3.0
-                glColor3f(color[0] * gradient, color[1] * gradient, color[2] * gradient)
-                glVertex3f(vertex[0], vertex[1], vertex[2])
+        glBegin(GL_QUADS)
+  
         glEnd()
 
 
     def resizeGL(self, w, h):
         glViewport(0, 0, w, h)
         glMatrixMode(GL_PROJECTION)
-        glLoadIdentity()
         gluPerspective(45.0, w / h, 1.0, 100.0)
         glMatrixMode(GL_MODELVIEW)
-        # glLoadIdentity()
+
         glTranslatef(0.0, 0.0, -6.0)
 
     def paintGL(self):
@@ -143,19 +103,6 @@ class CubeGLWidget(QOpenGLWidget):
             glVertex3f(vertex[0], vertex[1], vertex[2])
         glEnd()
 
-        # Draw edges for the slice
-        glBegin(GL_LINES)
-        edges = [
-            [-1, -1, self.slice_position], [1, -1, self.slice_position],
-            [1, -1, self.slice_position], [1, 1, self.slice_position],
-            [1, 1, self.slice_position], [-1, 1, self.slice_position],
-            [-1, 1, self.slice_position], [-1, -1, self.slice_position]
-        ]
-        for edge in edges:
-            glColor3f(1.0, 1.0, 1.0)  # White color for edges
-            glVertex3f(edge[0], edge[1], edge[2])
-        glEnd()
-
     def drawEdges(self):
         glBegin(GL_LINES)
         edges = [
@@ -172,7 +119,6 @@ class CubeGLWidget(QOpenGLWidget):
 
     def mousePressEvent(self, event):
         self.lastPos = event.position()
-        print(self.showSlice)
     def mouseMoveEvent(self, event):
         dx = event.position().x() - self.lastPos.x()
         dy = event.position().y() - self.lastPos.y()
