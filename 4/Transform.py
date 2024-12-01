@@ -28,6 +28,7 @@ class Transformations(QWidget):
         except Exception as e:
             QMessageBox.critical(self, "Error", str(e))
         self.image_viewer.display_image(self.image)
+        
     def transform(self):
         operations = {
             "Dodawanie": self.add_value,
@@ -128,8 +129,36 @@ class Transformations(QWidget):
 
         
     def change_brightness(self):
-        pass
+        
+        value = self.brightness_spin.value()
+
+        arr = self.get_byte_array()
+
+        rgb_channels = arr[:, :, 2::-1]
+
+        adjusted_channels = np.clip(rgb_channels.astype(np.int16) + value, 0, 255).astype(np.uint8)
+
+        arr[:, :, 2::-1] = adjusted_channels
+
+        new_image = QImage(arr.data.tobytes(), self.image.width(), self.image.height(), QImage.Format_ARGB32).copy()
+
+        self.image_viewer.display_image(new_image)
     
+    def convert_to_grayscale(self):
+        method = self.grayscale_combo.currentText()    
+        arr = self.get_byte_array()
+
+        if method == "Średnia arytmetyczna":
+            grayscale = np.mean(arr[:, :, 2::-1], axis=2).astype(np.uint8)
+        else:
+            # Convert to YUV
+            # https://en.wikipedia.org/wiki/Grayscale#Luma_coding_in_video_systems
+            yuv = np.dot(arr[:, :, 2::-1], [0.299, 0.587, 0.114])
+            grayscale = yuv.astype(np.uint8)
+
+        new_image = QImage(grayscale.data.tobytes(), self.image.width(), self.image.height(), QImage.Format_Grayscale8).copy()
+        
+        self.image_viewer.display_image(new_image)
         
     def get_byte_array(self):
         width = self.image.width()

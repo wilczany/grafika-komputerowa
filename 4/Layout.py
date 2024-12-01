@@ -9,6 +9,7 @@ from PySide6.QtWidgets import (
     QPushButton,
     QWidget,
     QDialog,
+    QComboBox
 )
 
 from PySide6.QtCore import Qt
@@ -64,8 +65,6 @@ def do_transformation_layout(window: QWidget):
         lambda: window.transform() if window.button_group.checkedButton() else None
     )
     
-    
-
     for color in ["Red", "Green", "Blue", "Brightness"]:
         spin_box = QSpinBox()
         spin_box.setRange(0, 255)
@@ -74,24 +73,18 @@ def do_transformation_layout(window: QWidget):
         colors_form_layout.addWidget(spin_box)
         setattr(window, f"{color.lower()}_spin", spin_box)
         setattr(window, f"{color.lower()}_label", label)
+    
+    window.brightness_spin.setRange(-255, 255)
     window.brightness_spin.hide()
     window.brightness_label.hide()
     
     toolbar_layout.addLayout(buttons_form_layout)
+    colors_form_layout.addWidget(execute_button)
     toolbar_layout.addLayout(colors_form_layout)
-    toolbar_layout.addWidget(execute_button)
 
-    get_values_button = QPushButton("Get RGB Values")
-    get_values_button.clicked.connect(lambda: print(window.get_rgb_values()))
-    toolbar_layout.addWidget(get_values_button)
-    main_layout.addWidget(toolbar)
     
     image_panel = QWidget()
-  
-    main_layout.addWidget(image_panel)
-    window.image_viewer = ImageViewer()
-    main_layout.addWidget(window.image_viewer)
-    window.setLayout(main_layout)
+
     
     def update_spin_boxes():
         fields = ["Red", "Green", "Blue"]
@@ -110,33 +103,60 @@ def do_transformation_layout(window: QWidget):
 
     window.button_group.buttonClicked.connect(update_spin_boxes)
 
+    grayscale_layout = QVBoxLayout()
+
+    window.grayscale_combo = QComboBox()
+    window.grayscale_combo.addItems(["Średnia arytmetyczna", "Model yuv"])
+    grayscale_layout.addWidget(QLabel("Metoda skali szarości:"))
+    grayscale_layout.addWidget(window.grayscale_combo)
+    
+    grayscale_btn = QPushButton("Konwertuj do skali szarości")
+    grayscale_btn.clicked.connect(window.convert_to_grayscale)
+    grayscale_layout.addWidget(grayscale_btn)
+    toolbar_layout.addLayout(grayscale_layout)
+    main_layout.addWidget(toolbar)
+
+    main_layout.addWidget(image_panel)
+    window.image_viewer = ImageViewer()
+    main_layout.addWidget(window.image_viewer)
+    window.setLayout(main_layout)
+
 
 def do_quality_layout(window: QWidget):
-    layout = QVBoxLayout()
-
-    label = QLabel("Jakość")
-    layout.addWidget(label)
-
-
-# def do_dialog_layout(window: QDialog):
-#     main_layout = QVBoxLayout()
-
-#     input_layout = QHBoxLayout()
-#     colors = ["red", "green", "blue"]
-
-#     for color in colors:
-#         sub_layout = QVBoxLayout()
-#         setattr(window, f"{color}_spin", QSpinBox(Qt.Horizontal))
-#         slider = getattr(window, f"{color}_spin")
-#         slider.setRange(0, 255)
-#         sub_layout.addWidget(QLabel(color + ":"))
-#         sub_layout.addWidget(slider)
-
-#     main_layout.addLayout(input_layout)
-
-#     ok_button = QPushButton("OK")
-#     ok_button.clicked.connect(window.accept)
-
-#     main_layout.addWidget(ok_button)
-
-#     window.setLayout(main_layout)
+    window.setWindowTitle('Image Filters')
+    window.layout = QVBoxLayout()
+    
+    # Image display
+    window.image_layout = QHBoxLayout()
+    window.original_label = QLabel('Original Image')
+    window.filtered_label = QLabel('Filtered Image')
+    window.image_layout.addWidget(window.original_label)
+    window.image_layout.addWidget(window.filtered_label)
+    
+    # Buttons
+    window.btn_layout = QHBoxLayout()
+    window.load_btn = QPushButton('Load Image')
+    window.mean_btn = QPushButton('Mean Filter')
+    window.median_btn = QPushButton('Median Filter')
+    window.sobel_btn = QPushButton('Sobel Edge')
+    window.sharpen_btn = QPushButton('Sharpen')
+    window.gaussian_btn = QPushButton('Gaussian Blur')
+    
+    window.btn_layout.addWidget(window.load_btn)
+    window.btn_layout.addWidget(window.mean_btn)
+    window.btn_layout.addWidget(window.median_btn)
+    window.btn_layout.addWidget(window.sobel_btn)
+    window.btn_layout.addWidget(window.sharpen_btn)
+    window.btn_layout.addWidget(window.gaussian_btn)
+    
+    window.layout.addLayout(window.image_layout)
+    window.layout.addLayout(window.btn_layout)
+    window.setLayout(window.layout)
+    
+    # Connect signals
+    window.load_btn.clicked.connect(window.load_image)
+    window.mean_btn.clicked.connect(lambda: window.apply_filter('mean'))
+    window.median_btn.clicked.connect(lambda: window.apply_filter('median'))
+    window.sobel_btn.clicked.connect(lambda: window.apply_filter('sobel'))
+    window.sharpen_btn.clicked.connect(lambda: window.apply_filter('sharpen'))
+    window.gaussian_btn.clicked.connect(lambda: window.apply_filter('gaussian'))
