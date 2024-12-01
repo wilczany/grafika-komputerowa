@@ -1,19 +1,28 @@
-from PySide6.QtWidgets import QScrollArea, QLabel
+from PySide6.QtWidgets import QWidget, QScrollArea, QLabel,  QVBoxLayout
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QImage, QPixmap
 
-class ImageViewerWidget(QScrollArea):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.setWidgetResizable(True)
-        self.image_label = QLabel(self)
-        self.image_label.setAlignment(Qt.AlignCenter)
-        self.setWidget(self.image_label)
-
-    def set_image(self, image_path):
-        image = QImage(image_path)
-        if image.isNull():
-            print(f"Failed to load image: {image_path}")
-            return
+class ImageViewer(QWidget):
+    def __init__(self):
+        super().__init__()
+        
+        # Layout dla ImageViewer
+        layout = QVBoxLayout(self)
+        
+        # ScrollArea dla większych obrazów
+        self.scroll_area = QScrollArea()
+        self.scroll_area.setWidgetResizable(True)
+        
+        # Label do wyświetlania obrazu
+        self.image_label = QLabel()
+        self.image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        # Ustawienie label wewnątrz ScrollArea
+        self.scroll_area.setWidget(self.image_label)
+        
+        # Dodanie ScrollArea do layoutu
+        layout.addWidget(self.scroll_area)
+        
+    def display_image(self, image: QImage):
         pixmap = QPixmap.fromImage(image)
         self.image_label.setPixmap(pixmap)
