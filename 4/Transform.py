@@ -14,8 +14,6 @@ class Transformations(QWidget):
 
         Layout.do_transformation_layout(self)
         
-        
-        
     def load_image(self):
         file_path, _ = QFileDialog.getOpenFileName(
             self, "Open Image", "", "Images ( *.jpg *.jpeg)"
@@ -52,15 +50,6 @@ class Transformations(QWidget):
 
     def add_value(self):
         print("Add value")
-        # rgb = self.get_rgb_values()
-
-        # for i in range(self.image.width()):
-        #     for j in range(self.image.height()):
-        #         color = self.image.pixelColor(i, j)
-        #         red = min(color.red() + rgb[0], 255)
-        #         green = min(color.green() + rgb[1], 255)
-        #         blue = min(color.blue() + rgb[2], 255)
-        #         self.image.setPixelColor(i, j, QColor(red, green, blue))
 
        
         arr = self.get_byte_array()   

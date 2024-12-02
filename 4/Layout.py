@@ -15,7 +15,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 
 from Transform import Transformations
-from Quality import QualityEnchance
+from Quality import QualityEnhance
 from ImageView import ImageViewer
 from PySide6.QtWidgets import QFormLayout, QRadioButton, QButtonGroup
 
@@ -27,7 +27,7 @@ def do_main_layout(window: QMainWindow):
 
     tab_widget = QTabWidget()
     tab_widget.addTab(Transformations(), "Przekształcenia punktowe")
-    tab_widget.addTab(QualityEnchance(), "Polepszenie jakości")
+    tab_widget.addTab(QualityEnhance(), "Polepszenie jakości")
     window.setCentralWidget(tab_widget)
 
 
@@ -126,37 +126,34 @@ def do_quality_layout(window: QWidget):
     window.setWindowTitle('Image Filters')
     window.layout = QVBoxLayout()
     
-    # Image display
+    window.original_view = ImageViewer()
+    window.filtered_view = ImageViewer()
+    
     window.image_layout = QHBoxLayout()
-    window.original_label = QLabel('Original Image')
-    window.filtered_label = QLabel('Filtered Image')
-    window.image_layout.addWidget(window.original_label)
-    window.image_layout.addWidget(window.filtered_label)
+    window.image_layout.addWidget(window.original_view)
+    window.image_layout.addWidget(window.filtered_view)
     
-    # Buttons
+
+    filter_buttons = [
+        ('Filtr uśredniający', 'mean'),
+        ('Filtra medianowy', 'median'),
+        ('Filtr wykrywania krawędzi', 'sobel'),
+        ('Filtr wyostrzający', 'sharpen'),
+        ('Rozmycie Gaussa', 'gaussian')
+    ]
+    
     window.btn_layout = QHBoxLayout()
-    window.load_btn = QPushButton('Load Image')
-    window.mean_btn = QPushButton('Mean Filter')
-    window.median_btn = QPushButton('Median Filter')
-    window.sobel_btn = QPushButton('Sobel Edge')
-    window.sharpen_btn = QPushButton('Sharpen')
-    window.gaussian_btn = QPushButton('Gaussian Blur')
-    
-    window.btn_layout.addWidget(window.load_btn)
-    window.btn_layout.addWidget(window.mean_btn)
-    window.btn_layout.addWidget(window.median_btn)
-    window.btn_layout.addWidget(window.sobel_btn)
-    window.btn_layout.addWidget(window.sharpen_btn)
-    window.btn_layout.addWidget(window.gaussian_btn)
+    load_image_button = QPushButton('Wczytaj obraz')
+    load_image_button.clicked.connect(window.load_image)
+
+    window.btn_layout.addWidget(load_image_button)
+
+    for btn_text, filter_type in filter_buttons:
+        btn = QPushButton(btn_text)
+        window.btn_layout.addWidget(btn)
+        
+        btn.clicked.connect(lambda checked, ft=filter_type: window.apply_filter(ft))
     
     window.layout.addLayout(window.image_layout)
     window.layout.addLayout(window.btn_layout)
     window.setLayout(window.layout)
-    
-    # Connect signals
-    window.load_btn.clicked.connect(window.load_image)
-    window.mean_btn.clicked.connect(lambda: window.apply_filter('mean'))
-    window.median_btn.clicked.connect(lambda: window.apply_filter('median'))
-    window.sobel_btn.clicked.connect(lambda: window.apply_filter('sobel'))
-    window.sharpen_btn.clicked.connect(lambda: window.apply_filter('sharpen'))
-    window.gaussian_btn.clicked.connect(lambda: window.apply_filter('gaussian'))
