@@ -136,7 +136,7 @@ def do_quality_layout(window: QWidget):
 
     filter_buttons = [
         ('Filtr uśredniający', 'mean'),
-        ('Filtra medianowy', 'median'),
+        ('Filtr medianowy', 'median'),
         ('Filtr wykrywania krawędzi', 'sobel'),
         ('Filtr wyostrzający', 'sharpen'),
         ('Rozmycie Gaussa', 'gaussian')
