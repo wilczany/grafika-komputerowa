@@ -8,6 +8,5 @@ class MainWindow(QMainWindow):
 	def __init__(self):
 		super().__init__()
 		Layout.do_main_layout(self)
-		self.color = QColor(0,0,0)	
 
 	
