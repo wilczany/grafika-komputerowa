@@ -3,6 +3,7 @@ from PySide6.QtWidgets import QWidget, QFileDialog
 from ImageView import ImageViewer
 import Layout
 
+
 class Histogram(QWidget):
     def __init__(self):
         super().__init__()
@@ -41,60 +42,122 @@ class Histogram(QWidget):
         min_r = min_g = min_b = 255
         max_r = max_g = max_b = 0
 
-        # Find min and max values for each channel
         for y in range(self.current_image.height()):
             for x in range(self.current_image.width()):
                 color = QColor(self.current_image.pixel(x, y))
                 r, g, b = color.red(), color.green(), color.blue()
-                
+
                 min_r = min(min_r, r)
                 min_g = min(min_g, g)
                 min_b = min(min_b, b)
-                
+
                 max_r = max(max_r, r)
                 max_g = max(max_g, g)
                 max_b = max(max_b, b)
 
-        # Apply normalization to all pixels
         for y in range(result.height()):
             for x in range(result.width()):
                 color = QColor(self.current_image.pixel(x, y))
-                r = int((color.red() - min_r) * 255 / (max_r - min_r)) if max_r > min_r else color.red()
-                g = int((color.green() - min_g) * 255 / (max_g - min_g)) if max_g > min_g else color.green()
-                b = int((color.blue() - min_b) * 255 / (max_b - min_b)) if max_b > min_b else color.blue()
-                
+
+                r = (
+                    int((color.red() - min_r) * 255 / (max_r - min_r))
+                    if max_r > min_r
+                    else color.red()
+                )
+                g = (
+                    int((color.green() - min_g) * 255 / (max_g - min_g))
+                    if max_g > min_g
+                    else color.green()
+                )
+                b = (
+                    int((color.blue() - min_b) * 255 / (max_b - min_b))
+                    if max_b > min_b
+                    else color.blue()
+                )
+
                 result.setPixel(x, y, QColor(r, g, b).rgb())
 
         self.current_image = result
         self.display_image(self.current_image)
 
+    # metoda CDF
+    # https://en.wikipedia.org/wiki/Histogram_equalization#Implementation
+
+    # def equalize_histogram(self):
+    #     if not self.current_image:
+    #         return
+
+    #     histograms = self.calculate_histogram(self.current_image)
+    #     total_pixels = self.current_image.width() * self.current_image.height()
+
+    #
+    #     cdf = {"r": [0] * 256, "g": [0] * 256, "b": [0] * 256}
+    #     for channel in ["r", "g", "b"]:
+    #         sum = 0
+    #         for i in range(256):
+    #             sum += histograms[channel][i]
+    #             cdf[channel][i] = sum
+
+    #
+    #     result = QImage(self.current_image)
+    #     for y in range(result.height()):
+    #         for x in range(result.width()):
+    #             color = QColor(self.current_image.pixel(x, y))
+    #             r = int(cdf["r"][color.red()] * 255 / total_pixels)
+    #             g = int(cdf["g"][color.green()] * 255 / total_pixels)
+    #             b = int(cdf["b"][color.blue()] * 255 / total_pixels)
+    #             result.setPixel(x, y, QColor(r, g, b).rgb())
+
+    #     self.current_image = result
+    #     self.display_image(self.current_image)
+
     def equalize_histogram(self):
+
         if not self.current_image:
             return
 
-        histograms = self.calculate_histogram(self.current_image)
+        histogram = self.calculate_histogram(self.current_image)
         total_pixels = self.current_image.width() * self.current_image.height()
 
-        # Calculate CDF for each channel
-        cdfs = {}
-        luts = {}
-        for channel, histogram in histograms.items():
-            cdf = [sum(histogram[: i + 1]) for i in range(256)]
-            cdf_min = min(v for v in cdf if v > 0)
-            luts[channel] = [
-                int(((v - cdf_min) * 255) / (total_pixels - cdf_min)) for v in cdf
-            ]
+        # LUT table
+        lut = {"r": [0] * 256, "g": [0] * 256, "b": [0] * 256}
+        min_r = 0
+        min_g = 0
+        min_b = 0
+        for i in range(256):
+            if histogram["r"][i] != 0:
+                min_r = histogram["r"][i]
+                break
 
-        result = QImage(self.current_image)
-        for y in range(result.height()):
-            for x in range(result.width()):
+        for i in range(256):
+            if histogram["g"][i] != 0:
+                min_g = histogram["g"][i]
+                break
+
+        for i in range(256):
+            if histogram["b"][i] != 0:
+                min_b = histogram["b"][i]
+                break
+
+        sum_r = 0
+        sum_g = 0
+        sum_b = 0
+        for i in range(256):
+            sum_r += histogram["r"][i]
+            sum_g += histogram["g"][i]
+            sum_b += histogram["b"][i]
+            lut["r"][i] = int((sum_r - min_r) * 255 / (total_pixels - min_r))
+            lut["g"][i] = int((sum_g - min_g) * 255 / (total_pixels - min_g))
+            lut["b"][i] = int((sum_b - min_b) * 255 / (total_pixels - min_b))
+
+        for y in range(self.current_image.height()):
+            for x in range(self.current_image.width()):
                 color = QColor(self.current_image.pixel(x, y))
-                r = luts["r"][color.red()]
-                g = luts["g"][color.green()]
-                b = luts["b"][color.blue()]
-                result.setPixel(x, y, QColor(r, g, b).rgb())
+                r = lut["r"][color.red()]
+                g = lut["g"][color.green()]
+                b = lut["b"][color.blue()]
+                self.current_image.setPixel(x, y, QColor(r, g, b).rgb())
 
-        self.current_image = result
         self.display_image(self.current_image)
 
     def reset_image(self):
